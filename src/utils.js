@@ -1,16 +1,24 @@
+const util = require('util')
 const core = require('@actions/core')
 const { parseBrowsers, parseReporters, parseParameters } = require('./context-utils')
 
-// Helper function to log debug messages
+/** Helper function to log info messages */
 function info(...args) {
-  core.info(...args)
+  const formattedArgs = args.map((arg) =>
+    typeof arg === 'object' ? util.inspect(arg, { depth: null }) : arg
+  )
+  core.info(formattedArgs.join(' '))
 }
 
-// Helper function to log debug messages
+/** Helper function to log debug messages */
 function debug(...args) {
-  core.debug(...args)
+  const formattedArgs = args.map((arg) =>
+    typeof arg === 'object' ? util.inspect(arg, { depth: null }) : arg
+  )
+  core.debug(formattedArgs.join(' '))
 }
 
+/** Converts a string from snake case or kebab case to camel case */
 function toCamelCase(str) {
   return str
     .toLowerCase()
@@ -19,7 +27,7 @@ function toCamelCase(str) {
     .replace(/^[A-Z]/, (c) => c.toLowerCase())
 }
 
-// Helper function to log debug messages
+/** Finds all github action env vars and turns them into a context object */
 function getContext() {
   // Get all environment variables
   const env = process.env
@@ -37,6 +45,7 @@ function getContext() {
   return context
 }
 
+/** Generates a valid API payload from a Context object */
 const createPayloadFromContext = (context) => {
   const parsedContext = {}
 
@@ -80,6 +89,7 @@ const createPayloadFromContext = (context) => {
   return parsedContext
 }
 
+/** Stops the execution for a specified number of milliseconds */
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
