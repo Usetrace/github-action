@@ -1,0 +1,37 @@
+{
+  "name": "github-action",
+  "version": "1.0.0",
+  "description": "Integrate easily your Usetrace tests in your Github Workflow",
+  "author": "Daniel Servidie",
+  "license": "MIT",
+  "keywords": [
+    "github",
+    "action",
+    "usetrace",
+    "webhook"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Usetrace/github-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Usetrace/github-action/issues"
+  },
+  "homepage": "https://github.com/Usetrace/github-action#readme",
+  "scripts": {
+    "build": "ncc build index.js -o dist",
+    "test": "jest",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^5.1.1",
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1",
+    "jest": "^29.7.0",
+    "husky": "^9.0.11"
+  }
+}

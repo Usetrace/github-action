@@ -1,0 +1,70 @@
+name: "Usetrace Github Action"
+description: "Triggers a Usetrace Trace and waits for it to finish"
+inputs:
+  trigger-type:
+    description: "Type of build you want to trigger ('trace' or 'project'). Required."
+    required: true
+
+  trigger-id:
+    description: "ID of a valid Usetrace Project or Trace to be triggered. Required."
+    required: true
+
+  # General arguments:
+  fail-on-failed-traces:
+    description: "Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'."
+    default: "true"
+  browsers:
+    description: "Coma separated list of browsers (ex: 'chrome, firefox')"
+  base-url:
+    description: "baseUrl to execute against (defaults to the project baseUrl)"
+  parameters:
+    description: "Object trace parameters"
+
+  # Reporter Webhook
+  webhook-url:
+    description: "URL of the POST callback to send the result"
+  webhook-when:
+    description: "Designation when the webhook should be triggered. Available values: 'always', 'fails' (on failures only), 'changes' (on result changes only). Default: 'always'"
+    default: "always"
+  webhook-secretkey:
+    description: "If provided, a HMAC signature will be created and passed via a Signature header in order to verify the validity of the POST response payload"
+  webhook-username:
+    description: "If provided together with the password, Authorization header, will be responded back, if your callback URL is behind authwall. Currently, only Basic Auth is supported"
+  webhook-password:
+    description: "Password of the basic auth"
+
+  # Project Only Optional arguments:
+  tags:
+    description: "Coma separated list of tags. Only traces with those tags would be run (by default runs all traces)"
+  commit:
+    description: "Hash of the commit leading to this build"
+  commit-link:
+    description: "Link to the commit"
+
+  usetrace-api-key:
+    description: "Usetrace API Key"
+
+  build-timeout-seconds:
+    description: "Max time to wait the build before timing it out. Default: 3600 seconds (60 minutes)"
+    default: "3600"
+
+outputs:
+  id:
+    description: Build id executed
+  status:
+    description: Status of the run
+  request:
+    description: Count of requested traces
+  finish:
+    description: Count of finished traces
+  pass:
+    description: Count of passed traces
+  fail:
+    description: Count of failed traces
+
+  report:
+    description: Full report of the build
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
