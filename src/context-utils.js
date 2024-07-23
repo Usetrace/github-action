@@ -3,7 +3,10 @@ const parseBrowsers = (browsers) => {
 
   if (browsers) {
     parsedBrowsers = browsers.split(',').map((browser) => {
-      const [name, _version] = browser.trim().split(' ')
+      const [name, version] = browser.trim().split(' ')
+      if (version) {
+        console.debug('Specifying a browser version is not a supported feature')
+      }
       return {
         browserName: name,
         // Version picking is disabled for now
