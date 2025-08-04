@@ -56,10 +56,7 @@ async function runUsetrace(context) {
   if (response.status === 200 && response.data) {
     context.buildId = response.data
 
-    // Check if we should wait for results
-    const shouldWait = context.waitForResult?.trim().toLowerCase() !== 'false'
-
-    if (shouldWait) {
+    if (context.waitForResult) {
       info('Trace triggered. Waiting for it to finish...')
       return await waitBuildFinished(context)
     } else {

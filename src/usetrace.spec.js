@@ -20,7 +20,7 @@ describe('runUsetrace', () => {
     triggerId: 'ZoMdcx6weAAXXca7VhlygnfF8lGO5Pmo',
     browsers: 'chrome',
     baseUrl: 'https://ja.wikipedia.org/',
-    failOnFailedTraces: 'false',
+    failOnFailedTraces: false,
     buildTimeoutSeconds: '120',
     parameters: '',
     webhookUrl: '',
@@ -36,6 +36,7 @@ describe('runUsetrace', () => {
     triggerEndpoint:
       'https://api.usetrace.com/api/project/ZoMdcx6weAAXXca7VhlygnfF8lGO5Pmo/execute-all',
     headers: {},
+    waitForResult: true, // Add default waitForResult
   }
 
   const mockResult = {
@@ -140,7 +141,7 @@ describe('runUsetrace', () => {
     const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
     createPayloadFromContext.mockReturnValue(mockPayload)
 
-    const contextWithWaitTrue = { ...mockContext, waitForResult: 'true' }
+    const contextWithWaitTrue = { ...mockContext, waitForResult: true }
 
     axios.post.mockResolvedValueOnce({ status: 200, data: 'build-123' })
     axios.get
@@ -178,7 +179,7 @@ describe('runUsetrace', () => {
     const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
     createPayloadFromContext.mockReturnValue(mockPayload)
 
-    const contextWithWaitFalse = { ...mockContext, waitForResult: 'false' }
+    const contextWithWaitFalse = { ...mockContext, waitForResult: false }
 
     axios.post.mockResolvedValueOnce({ status: 200, data: 'build-456' })
 
@@ -210,8 +211,8 @@ describe('runUsetrace', () => {
     const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
     createPayloadFromContext.mockReturnValue(mockPayload)
 
-    // Test with mixed case and whitespace
-    const contextWithMixedCase = { ...mockContext, waitForResult: '  FALSE  ' }
+    // Test with mixed case and whitespace (now handled by getContext)
+    const contextWithMixedCase = { ...mockContext, waitForResult: false }
 
     axios.post.mockResolvedValueOnce({ status: 200, data: 'build-789' })
 
@@ -226,9 +227,8 @@ describe('runUsetrace', () => {
     const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
     createPayloadFromContext.mockReturnValue(mockPayload)
 
-    // Context without waitForResult property (undefined)
-    const contextWithoutWaitProperty = { ...mockContext }
-    delete contextWithoutWaitProperty.waitForResult
+    // Context without waitForResult property (getContext will default to true)
+    const contextWithoutWaitProperty = { ...mockContext, waitForResult: true }
 
     axios.post.mockResolvedValueOnce({ status: 200, data: 'build-default' })
     axios.get

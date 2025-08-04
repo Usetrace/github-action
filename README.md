@@ -30,7 +30,8 @@ https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action
 
 ### Workflow Control
 
-- `fail-on-failed-traces`: Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'.
+- `wait-for-result`: Whether to wait for the trace to finish before completing the action. Set to 'false' to trigger the trace and exit immediately without waiting for results. Default: 'true'.
+- `fail-on-failed-traces`: Determines whether the workflow should fail if any traces fail. Set to 'true' to fail the workflow if the count of failed traces is not zero, 'false' to always pass the workflow regardless of trace results. Default: 'true'. Note: This only applies when `wait-for-result` is 'true'.
 
 #### Reporter Webhook
 
@@ -200,6 +201,47 @@ jobs:
           echo "Trace result: $BUILD_ID $STATUS $RESULT_REQUEST $RESULT_FINISH $RESULT_PASS $RESULT_FAIL "
           echo "REPORT: $RESULT_REPORT "
 ```
+
+### Example with Fire-and-Forget Mode
+
+Sometimes you want to trigger traces but don't want to wait for them to complete. This is useful for triggering background monitoring tests or when you want to continue your deployment process without waiting for test results.
+
+```yaml
+name: Deploy and trigger background tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        id: deploy
+        run: |
+          # Your deployment steps here
+          echo "Deploying to production..."
+
+      - name: Trigger background monitoring tests
+        uses: Usetrace/github-action@v1
+        with:
+          trigger-type: project
+          trigger-id: ${{ vars.MONITORING_PROJECT_ID }}
+          wait-for-result: false # Don't wait for tests to complete
+          base-url: https://your-production-site.com
+
+      - name: Continue with other tasks
+        run: |
+          echo "Deployment completed, monitoring tests triggered in background"
+          # Continue with other post-deployment tasks
+```
+
+In this example, the monitoring tests are triggered but the workflow continues immediately without waiting for the test results.
 
 You can learn some more about how to use it looking into our development tests repo here:
 https://github.com/Usetrace/github-actions-integration-test

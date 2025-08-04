@@ -30,12 +30,7 @@ async function run() {
     core.setOutput('fail', result.summary.fail)
 
     // Only check for failed traces if we waited for results
-    const shouldWait = context.waitForResult?.trim().toLowerCase() !== 'false'
-    if (
-      shouldWait &&
-      context.failOnFailedTraces.trim().toLowerCase() === 'true' &&
-      result.summary?.fail > 0
-    ) {
+    if (context.waitForResult && context.failOnFailedTraces && result.summary?.fail > 0) {
       core.setFailed(
         `The step failed because ${result.summary?.fail} Traces failed out of ${result.summary?.request}. If you don't want the step to fail when a Trace fails, you can set 'fail-on-failed-traces' input to false.`
       )

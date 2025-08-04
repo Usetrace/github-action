@@ -32,6 +32,12 @@ function getContext() {
   // Get all environment variables
   const env = process.env
 
+  // Define boolean inputs that should be parsed with their defaults
+  const booleanInputs = new Map([
+    ['waitForResult', true],
+    ['failOnFailedTraces', true],
+  ])
+
   // Loop through each environment variable
   const context = {}
 
@@ -40,8 +46,22 @@ function getContext() {
     .forEach((key) => {
       const inputName = toCamelCase(key.slice(6)) // Convert the Kebab case into camel case
       const inputValue = env[key]
-      context[inputName] = inputValue // Add the input name and value to the context object
+
+      // Parse boolean inputs using parseBooleanInput, others as strings
+      if (booleanInputs.has(inputName)) {
+        context[inputName] = parseBooleanInput(inputValue, booleanInputs.get(inputName))
+      } else {
+        context[inputName] = inputValue
+      }
     })
+
+  // Ensure boolean inputs have default values even if not present in environment
+  booleanInputs.forEach((defaultValue, inputName) => {
+    if (!(inputName in context)) {
+      context[inputName] = defaultValue
+    }
+  })
+
   return context
 }
 
@@ -94,4 +114,20 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-module.exports = { debug, info, toCamelCase, getContext, createPayloadFromContext, sleep }
+/** Safely parses a boolean string parameter with defaults */
+function parseBooleanInput(value, defaultValue = true) {
+  if (value === undefined || value === null || value === '') {
+    return defaultValue
+  }
+  return value.toString().trim().toLowerCase() !== 'false'
+}
+
+module.exports = {
+  debug,
+  info,
+  toCamelCase,
+  getContext,
+  createPayloadFromContext,
+  sleep,
+  parseBooleanInput,
+}
