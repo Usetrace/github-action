@@ -20,9 +20,9 @@ async function run() {
     }`
 
     // Generates the headers with the apikey if provided.
-    context.headers = {
-      ...(context.apiKey ? { headers: { Authorization: `Bearer ${context.apiKey}` } } : {}),
-    }
+    context.headers = context.usetraceApiKey
+      ? { headers: { Authorization: `Bearer ${context.usetraceApiKey}` } }
+      : {}
 
     debug('context', context)
 

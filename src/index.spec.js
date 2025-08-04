@@ -18,7 +18,7 @@ describe('index.js main flow', () => {
     triggerType: 'trace',
     triggerId: 'test-trace-id',
     failOnFailedTraces: true,
-    apiKey: 'test-api-key',
+    usetraceApiKey: 'test-api-key',
     buildTimeoutSeconds: '3600',
     waitForResult: true,
   }
