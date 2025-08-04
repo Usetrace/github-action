@@ -202,11 +202,9 @@ describe('index.js main flow', () => {
 
     expect(callArgs.envUrl).toBe('https://api.usetrace.com')
     expect(callArgs.triggerEndpoint).toBe(
-      'https://api.usetrace.com/api/trace/test-trace-id/execute'
+      'https://api.usetrace.com/api/trace/test-trace-id/execute?key=test-api-key'
     )
-    expect(callArgs.headers).toEqual({
-      headers: { Authorization: 'Bearer test-api-key' },
-    })
+    expect(callArgs.headers).toEqual({})
   })
 
   test('should handle project trigger type correctly', async () => {
@@ -225,7 +223,7 @@ describe('index.js main flow', () => {
 
     const callArgs = runUsetrace.mock.calls[0][0]
     expect(callArgs.triggerEndpoint).toBe(
-      'https://api.usetrace.com/api/project/project-123/execute-all'
+      'https://api.usetrace.com/api/project/project-123/execute-all?key=test-api-key'
     )
   })
 })

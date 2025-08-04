@@ -12,20 +12,20 @@ async function waitBuildFinished(context) {
     }
 
     try {
-      const response = await axios.get(
-        `${context.envUrl}/api/build/${context.buildId}/status`,
-        context.headers
-      )
+      const statusUrl = context.usetraceApiKey
+        ? `${context.envUrl}/api/build/${context.buildId}/status?key=${context.usetraceApiKey}`
+        : `${context.envUrl}/api/build/${context.buildId}/status`
+      const response = await axios.get(statusUrl)
 
       if (response.status !== 404) {
         debug('Build status check:', response.data)
 
         if (response.data.status && response.data.status === 'FINISHED') {
           // Build finished
-          const results = await axios.get(
-            `${context.envUrl}/api/build/${context.buildId}/results/json`,
-            context.headers
-          )
+          const resultsUrl = context.usetraceApiKey
+            ? `${context.envUrl}/api/build/${context.buildId}/results/json?key=${context.usetraceApiKey}`
+            : `${context.envUrl}/api/build/${context.buildId}/results/json`
+          const results = await axios.get(resultsUrl)
           info('Build finished with this result:', results.data)
 
           core.setOutput('report', results.data)
@@ -49,7 +49,7 @@ async function runUsetrace(context) {
   const payload = createPayloadFromContext(context)
   debug('Build invoke payload: ', payload)
 
-  const response = await axios.post(context.triggerEndpoint, payload, context.headers)
+  const response = await axios.post(context.triggerEndpoint, payload)
 
   debug('Trace trigger result: ', response.status, ' / ', response.data)
 

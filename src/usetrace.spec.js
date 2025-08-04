@@ -112,11 +112,7 @@ describe('runUsetrace', () => {
     await executePromise
 
     expect(createPayloadFromContext).toHaveBeenCalledWith(mockContext)
-    expect(axios.post).toHaveBeenCalledWith(
-      mockContext.triggerEndpoint,
-      mockPayload,
-      mockContext.headers
-    )
+    expect(axios.post).toHaveBeenCalledWith(mockContext.triggerEndpoint, mockPayload)
     expect(axios.get).toHaveBeenCalledTimes(3)
     expect(core.setOutput).toHaveBeenCalledWith('report', mockResult)
   })
@@ -164,11 +160,7 @@ describe('runUsetrace', () => {
     const result = await executePromise
 
     expect(createPayloadFromContext).toHaveBeenCalledWith(contextWithWaitTrue)
-    expect(axios.post).toHaveBeenCalledWith(
-      contextWithWaitTrue.triggerEndpoint,
-      mockPayload,
-      contextWithWaitTrue.headers
-    )
+    expect(axios.post).toHaveBeenCalledWith(contextWithWaitTrue.triggerEndpoint, mockPayload)
     expect(axios.get).toHaveBeenCalledTimes(2) // Status check + result fetch
     expect(core.setOutput).toHaveBeenCalledWith('report', mockResult)
     expect(result.status).toBe('FINISHED')
@@ -186,11 +178,7 @@ describe('runUsetrace', () => {
     const result = await runUsetrace(contextWithWaitFalse)
 
     expect(createPayloadFromContext).toHaveBeenCalledWith(contextWithWaitFalse)
-    expect(axios.post).toHaveBeenCalledWith(
-      contextWithWaitFalse.triggerEndpoint,
-      mockPayload,
-      contextWithWaitFalse.headers
-    )
+    expect(axios.post).toHaveBeenCalledWith(contextWithWaitFalse.triggerEndpoint, mockPayload)
     expect(axios.get).not.toHaveBeenCalled() // Should not poll for status
     expect(core.setOutput).not.toHaveBeenCalled() // Should not set report output
 

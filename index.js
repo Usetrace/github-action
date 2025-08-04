@@ -7,16 +7,19 @@ async function run() {
     const context = getContext()
 
     context.envUrl = `https://api.usetrace.com` // TODO: Allow set the usetrace Env in the actions variables
-    context.triggerEndpoint = `${context.envUrl}/api${
+
+    // Build the endpoint URL with API key as query parameter if provided
+    const baseEndpoint = `${context.envUrl}/api${
       context.triggerType === 'project'
         ? `/project/${context.triggerId}/execute-all`
         : `/trace/${context.triggerId}/execute`
     }`
+    context.triggerEndpoint = context.usetraceApiKey
+      ? `${baseEndpoint}?key=${context.usetraceApiKey}`
+      : baseEndpoint
 
-    // Generates the headers with the apikey if provided.
-    context.headers = context.usetraceApiKey
-      ? { headers: { Authorization: `Bearer ${context.usetraceApiKey}` } }
-      : {}
+    // No special headers needed for Usetrace API
+    context.headers = {}
 
     debug('context', context)
 
