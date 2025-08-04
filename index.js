@@ -29,7 +29,10 @@ async function run() {
     core.setOutput('pass', result.summary.pass)
     core.setOutput('fail', result.summary.fail)
 
+    // Only check for failed traces if we waited for results
+    const shouldWait = context.waitForResult?.trim().toLowerCase() !== 'false'
     if (
+      shouldWait &&
       context.failOnFailedTraces.trim().toLowerCase() === 'true' &&
       result.summary?.fail > 0
     ) {
@@ -43,4 +46,10 @@ async function run() {
   }
 }
 
-run()
+// Export for testing
+module.exports = { run }
+
+// Only run if this file is executed directly (not required by tests)
+if (require.main === module) {
+  run()
+}

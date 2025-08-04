@@ -54,9 +54,27 @@ async function runUsetrace(context) {
   debug('Trace trigger result: ', response.status, ' / ', response.data)
 
   if (response.status === 200 && response.data) {
-    info('Trace triggered. Waiting for it to finish...')
     context.buildId = response.data
-    return await waitBuildFinished(context)
+
+    // Check if we should wait for results
+    const shouldWait = context.waitForResult?.trim().toLowerCase() !== 'false'
+
+    if (shouldWait) {
+      info('Trace triggered. Waiting for it to finish...')
+      return await waitBuildFinished(context)
+    } else {
+      info('Trace triggered. Not waiting for results as wait-for-result is set to false.')
+      return {
+        id: response.data,
+        status: 'TRIGGERED',
+        summary: {
+          request: 0,
+          finish: 0,
+          pass: 0,
+          fail: 0,
+        },
+      }
+    }
   } else {
     throw new Error('No build ID returned from execute command')
   }

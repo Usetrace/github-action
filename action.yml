@@ -1,5 +1,5 @@
 name: "Usetrace Github Action"
-description: "Triggers a Usetrace Trace and waits for it to finish"
+description: "Triggers a Usetrace Trace and optionally waits for it to finish"
 inputs:
   trigger-type:
     description: "Type of build you want to trigger ('trace' or 'project'). Required."
@@ -8,6 +8,10 @@ inputs:
   trigger-id:
     description: "ID of a valid Usetrace Project or Trace to be triggered. Required."
     required: true
+
+  wait-for-result:
+    description: "Whether to wait for the trace to finish before completing the action. Set to 'false' to trigger the trace and exit immediately without waiting for results. Default: 'true'."
+    default: "true"
 
   # General arguments:
   fail-on-failed-traces:

@@ -1,6 +1,63 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 2932:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186)
+const { runUsetrace } = __nccwpck_require__(3299)
+const { debug, getContext } = __nccwpck_require__(1608)
+
+async function run() {
+  try {
+    const context = getContext()
+
+    context.envUrl = `https://api.usetrace.com` // TODO: Allow set the usetrace Env in the actions variables
+    context.triggerEndpoint = `${context.envUrl}/api${
+      context.triggerType === 'project'
+        ? `/project/${context.triggerId}/execute-all`
+        : `/trace/${context.triggerId}/execute`
+    }`
+
+    // Generates the headers with the apikey if provided.
+    context.headers = {
+      ...(context.apiKey ? { headers: { Authorization: `Bearer ${context.apiKey}` } } : {}),
+    }
+
+    debug('context', context)
+
+    const result = await runUsetrace(context)
+    debug('Final build status:', result)
+    core.setOutput('id', result.id)
+    core.setOutput('status', result.status)
+    core.setOutput('request', result.summary.request)
+    core.setOutput('finish', result.summary.finish)
+    core.setOutput('pass', result.summary.pass)
+    core.setOutput('fail', result.summary.fail)
+
+    // Only check for failed traces if we waited for results
+    if (context.waitForResult && context.failOnFailedTraces && result.summary?.fail > 0) {
+      core.setFailed(
+        `The step failed because ${result.summary?.fail} Traces failed out of ${result.summary?.request}. If you don't want the step to fail when a Trace fails, you can set 'fail-on-failed-traces' input to false.`
+      )
+    }
+  } catch (error) {
+    debug('Error: ', error)
+    core.setFailed(error.message)
+  }
+}
+
+// Export for testing
+module.exports = { run }
+
+// Only run if this file is executed directly (not required by tests)
+if (require.main === require.cache[eval('__filename')]) {
+  run()
+}
+
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -28540,9 +28597,24 @@ async function runUsetrace(context) {
   debug('Trace trigger result: ', response.status, ' / ', response.data)
 
   if (response.status === 200 && response.data) {
-    info('Trace triggered. Waiting for it to finish...')
     context.buildId = response.data
-    return await waitBuildFinished(context)
+
+    if (context.waitForResult) {
+      info('Trace triggered. Waiting for it to finish...')
+      return await waitBuildFinished(context)
+    } else {
+      info('Trace triggered. Not waiting for results as wait-for-result is set to false.')
+      return {
+        id: response.data,
+        status: 'TRIGGERED',
+        summary: {
+          request: 0,
+          finish: 0,
+          pass: 0,
+          fail: 0,
+        },
+      }
+    }
   } else {
     throw new Error('No build ID returned from execute command')
   }
@@ -28590,6 +28662,12 @@ function getContext() {
   // Get all environment variables
   const env = process.env
 
+  // Define boolean inputs that should be parsed with their defaults
+  const booleanInputs = new Map([
+    ['waitForResult', true],
+    ['failOnFailedTraces', true],
+  ])
+
   // Loop through each environment variable
   const context = {}
 
@@ -28598,8 +28676,22 @@ function getContext() {
     .forEach((key) => {
       const inputName = toCamelCase(key.slice(6)) // Convert the Kebab case into camel case
       const inputValue = env[key]
-      context[inputName] = inputValue // Add the input name and value to the context object
+
+      // Parse boolean inputs using parseBooleanInput, others as strings
+      if (booleanInputs.has(inputName)) {
+        context[inputName] = parseBooleanInput(inputValue, booleanInputs.get(inputName))
+      } else {
+        context[inputName] = inputValue
+      }
     })
+
+  // Ensure boolean inputs have default values even if not present in environment
+  booleanInputs.forEach((defaultValue, inputName) => {
+    if (!(inputName in context)) {
+      context[inputName] = defaultValue
+    }
+  })
+
   return context
 }
 
@@ -28652,7 +28744,23 @@ async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-module.exports = { debug, info, toCamelCase, getContext, createPayloadFromContext, sleep }
+/** Safely parses a boolean string parameter with defaults */
+function parseBooleanInput(value, defaultValue = true) {
+  if (value === undefined || value === null || value === '') {
+    return defaultValue
+  }
+  return value.toString().trim().toLowerCase() !== 'false'
+}
+
+module.exports = {
+  debug,
+  info,
+  toCamelCase,
+  getContext,
+  createPayloadFromContext,
+  sleep,
+  parseBooleanInput,
+}
 
 
 /***/ }),
@@ -35273,58 +35381,12 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-const core = __nccwpck_require__(2186)
-const { runUsetrace } = __nccwpck_require__(3299)
-const { debug, getContext } = __nccwpck_require__(1608)
-
-async function run() {
-  try {
-    const context = getContext()
-
-    context.envUrl = `https://api.usetrace.com` // TODO: Allow set the usetrace Env in the actions variables
-    context.triggerEndpoint = `${context.envUrl}/api${
-      context.triggerType === 'project'
-        ? `/project/${context.triggerId}/execute-all`
-        : `/trace/${context.triggerId}/execute`
-    }`
-
-    // Generates the headers with the apikey if provided.
-    context.headers = {
-      ...(context.apiKey ? { headers: { Authorization: `Bearer ${context.apiKey}` } } : {}),
-    }
-
-    debug('context', context)
-
-    const result = await runUsetrace(context)
-    debug('Final build status:', result)
-    core.setOutput('id', result.id)
-    core.setOutput('status', result.status)
-    core.setOutput('request', result.summary.request)
-    core.setOutput('finish', result.summary.finish)
-    core.setOutput('pass', result.summary.pass)
-    core.setOutput('fail', result.summary.fail)
-
-    if (
-      context.failOnFailedTraces.trim().toLowerCase() === 'true' &&
-      result.summary?.fail > 0
-    ) {
-      core.setFailed(
-        `The step failed because ${result.summary?.fail} Traces failed out of ${result.summary?.request}. If you don't want the step to fail when a Trace fails, you can set 'fail-on-failed-traces' input to false.`
-      )
-    }
-  } catch (error) {
-    debug('Error: ', error)
-    core.setFailed(error.message)
-  }
-}
-
-run()
-
-})();
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(2932);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

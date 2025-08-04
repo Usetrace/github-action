@@ -135,4 +135,123 @@ describe('runUsetrace', () => {
 
     expect(axios.get).toHaveBeenCalledTimes(3)
   })
+
+  test('should wait for results when wait-for-result is true (default behavior)', async () => {
+    const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
+    createPayloadFromContext.mockReturnValue(mockPayload)
+
+    const contextWithWaitTrue = { ...mockContext, waitForResult: 'true' }
+
+    axios.post.mockResolvedValueOnce({ status: 200, data: 'build-123' })
+    axios.get
+      .mockResolvedValueOnce({
+        status: 200,
+        data: {
+          status: 'FINISHED',
+          summary: {
+            request: 1,
+            finish: 1,
+            pass: 1,
+            fail: 0,
+          },
+        },
+      })
+      .mockResolvedValueOnce({ status: 200, data: mockResult })
+
+    const executePromise = runUsetrace(contextWithWaitTrue)
+    await jest.runAllTimersAsync()
+    const result = await executePromise
+
+    expect(createPayloadFromContext).toHaveBeenCalledWith(contextWithWaitTrue)
+    expect(axios.post).toHaveBeenCalledWith(
+      contextWithWaitTrue.triggerEndpoint,
+      mockPayload,
+      contextWithWaitTrue.headers
+    )
+    expect(axios.get).toHaveBeenCalledTimes(2) // Status check + result fetch
+    expect(core.setOutput).toHaveBeenCalledWith('report', mockResult)
+    expect(result.status).toBe('FINISHED')
+    expect(result.summary.pass).toBe(1)
+  })
+
+  test('should not wait for results when wait-for-result is false', async () => {
+    const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
+    createPayloadFromContext.mockReturnValue(mockPayload)
+
+    const contextWithWaitFalse = { ...mockContext, waitForResult: 'false' }
+
+    axios.post.mockResolvedValueOnce({ status: 200, data: 'build-456' })
+
+    const result = await runUsetrace(contextWithWaitFalse)
+
+    expect(createPayloadFromContext).toHaveBeenCalledWith(contextWithWaitFalse)
+    expect(axios.post).toHaveBeenCalledWith(
+      contextWithWaitFalse.triggerEndpoint,
+      mockPayload,
+      contextWithWaitFalse.headers
+    )
+    expect(axios.get).not.toHaveBeenCalled() // Should not poll for status
+    expect(core.setOutput).not.toHaveBeenCalled() // Should not set report output
+
+    // Verify the returned result structure
+    expect(result).toEqual({
+      id: 'build-456',
+      status: 'TRIGGERED',
+      summary: {
+        request: 0,
+        finish: 0,
+        pass: 0,
+        fail: 0,
+      },
+    })
+  })
+
+  test('should handle wait-for-result parameter with mixed case and whitespace', async () => {
+    const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
+    createPayloadFromContext.mockReturnValue(mockPayload)
+
+    // Test with mixed case and whitespace
+    const contextWithMixedCase = { ...mockContext, waitForResult: '  FALSE  ' }
+
+    axios.post.mockResolvedValueOnce({ status: 200, data: 'build-789' })
+
+    const result = await runUsetrace(contextWithMixedCase)
+
+    expect(axios.get).not.toHaveBeenCalled() // Should not poll for status
+    expect(result.status).toBe('TRIGGERED')
+    expect(result.id).toBe('build-789')
+  })
+
+  test('should wait for results when wait-for-result is undefined (default behavior)', async () => {
+    const mockPayload = { requiredCapabilities: { browserName: 'chrome' }, key: 'value' }
+    createPayloadFromContext.mockReturnValue(mockPayload)
+
+    // Context without waitForResult property (undefined)
+    const contextWithoutWaitProperty = { ...mockContext }
+    delete contextWithoutWaitProperty.waitForResult
+
+    axios.post.mockResolvedValueOnce({ status: 200, data: 'build-default' })
+    axios.get
+      .mockResolvedValueOnce({
+        status: 200,
+        data: {
+          status: 'FINISHED',
+          summary: {
+            request: 1,
+            finish: 1,
+            pass: 0,
+            fail: 1,
+          },
+        },
+      })
+      .mockResolvedValueOnce({ status: 200, data: mockResult })
+
+    const executePromise = runUsetrace(contextWithoutWaitProperty)
+    await jest.runAllTimersAsync()
+    const result = await executePromise
+
+    expect(axios.get).toHaveBeenCalledTimes(2) // Should poll for status (default behavior)
+    expect(result.status).toBe('FINISHED')
+    expect(result.summary.fail).toBe(1)
+  })
 })
